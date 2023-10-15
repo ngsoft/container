@@ -8,8 +8,6 @@ use NGSOFT\Container\ContainerInterface;
 use NGSOFT\Container\ServiceProvider;
 use NGSOFT\Facades\Facade;
 
-use function NGSOFT\Filesystem\require_all_once;
-
 final class InnerFacade extends Facade
 {
     protected array $resolvedInstances       = [];
@@ -71,7 +69,13 @@ final class InnerFacade extends Facade
     {
         if (empty($this->providers))
         {
-            require_all_once(dirname(__DIR__));
+            foreach (scandir($dir = dirname(__DIR__)) ?: [] as $file)
+            {
+                if (str_ends_with($file, '.php'))
+                {
+                    require_once $dir . DIRECTORY_SEPARATOR . $file;
+                }
+            }
 
             foreach (\implements_class(Facade::class, false) as $class)
             {

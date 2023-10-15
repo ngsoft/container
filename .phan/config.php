@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This configuration will be read and overlaid on top of the
  * default configuration. Command line arguments will be applied
@@ -21,8 +23,8 @@ return [
     'directory_list'                              => [
         'src',
         'vendor',
-        // '../ngsoft-tools/lib/',
-        // '../ngsoft-tools/src/',
+        //        '../ngsoft-tools/lib/',
+        //        '../ngsoft-tools/src/',
     ],
     // A directory list that defines files that will be excluded
     // from static analysis, but whose class and method
