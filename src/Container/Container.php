@@ -260,7 +260,7 @@ class Container implements ContainerInterface
             if ($def instanceof \Closure)
             {
                 $resolved = $this->parameterResolver->resolve($def, $providedParams);
-            } elseif (\is_instanciable($abstract))
+            } elseif (\is_instantiable($abstract))
             {
                 $resolved = $this->parameterResolver->resolve($abstract, $providedParams);
             }

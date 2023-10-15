@@ -1,47 +1,40 @@
 {
-    "name": "ngsoft/tools",
-    "description": "An auto-wired dependency injection container",
-    "keywords": [
-        "container",
-        "di",
-        "facade",
-        "PSR-11",
-        "attribute",
-        "reflection",
-        "PSR-14",
-        "event-dispatcher"
-    ],
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "Aymeric Anger",
-            "role": "Developer",
-            "homepage": "https://github.com/ngsoft"
-        }
-    ],
-    "suggest": {},
-    "provide": {
-        "psr/container-implementation": "^1.1|^2.0"
+  "name": "ngsoft/tools",
+  "description": "An auto-wired dependency injection container",
+  "keywords": [
+    "container",
+    "di",
+    "facade",
+    "PSR-11",
+    "attribute",
+    "reflection"
+  ],
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Aymeric Anger",
+      "role": "Developer",
+      "homepage": "https://github.com/ngsoft"
+    }
+  ],
+  "suggest": {},
+  "provide": {
+    "psr/container-implementation": "^1.1|^2.0"
+  },
+  "require-dev": {},
+  "require": {
+    "php": ">=8.1",
+    "psr/container": "^1.1|^2.0.1",
+    "psr/log": "^1|^2|^3",
+    "ngsoft/tools": "^4",
+    "ngsoft/filesystem": "^1"
+  },
+  "autoload": {
+    "psr-4": {
+      "NGSOFT\\": "src/"
     },
-    "require-dev": {},
-    "require": {
-        "php": ">=8.1",
-        "psr/container": "^1.1|^2.0.1",
-        "psr/event-dispatcher": "^1",
-        "psr/log": "^1|^2|^3",
-        "ngsoft/tools": "^4"
-    },
-    "autoload": {
-        "psr-4": {
-            "NGSOFT\\": "src/"
-        },
-        "files": []
-    },
-    "autoload-dev": {
-        "files": [
-            "../ngsoft-tools/vendor/autoload.php"
-        ]
-    },
-    "minimum-stability": "dev",
-    "prefer-stable": true
+    "files": []
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
 }

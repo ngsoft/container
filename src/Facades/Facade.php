@@ -85,8 +85,6 @@ abstract class Facade
 
     /**
      * Get The facade instance.
-     *
-     * @return Facade
      */
     final protected static function getInnerFacade(): InnerFacade
     {
