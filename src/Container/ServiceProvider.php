@@ -6,12 +6,8 @@ namespace NGSOFT\Container;
 
 interface ServiceProvider
 {
-
     /**
-     * Register the service into the container
-     *
-     * @param ContainerInterface $container
-     * @return void
+     * Register the service into the container.
      */
     public function register(ContainerInterface $container): void;
 

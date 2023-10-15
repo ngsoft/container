@@ -4,20 +4,13 @@ declare(strict_types=1);
 
 namespace NGSOFT\Facades;
 
-use NGSOFT\Container\{
-    Resolvers\ContainerResolver, ServiceProvider
-};
+use NGSOFT\Container\Resolvers\ContainerResolver;
+use NGSOFT\Container\ServiceProvider;
 
 class Container extends Facade
 {
-
-    protected static function getFacadeAccessor(): string
-    {
-        return static::getAlias();
-    }
-
     /**
-     * Alias an entry to a different name
+     * Alias an entry to a different name.
      */
     public static function alias(array|string $alias, string $id): void
     {
@@ -58,7 +51,7 @@ class Container extends Facade
     }
 
     /**
-     * Register a service
+     * Register a service.
      */
     public static function register(ServiceProvider $service): void
     {
@@ -66,7 +59,7 @@ class Container extends Facade
     }
 
     /**
-     * Add a definition to the container
+     * Add a definition to the container.
      */
     public static function set(string $id, mixed $value): void
     {
@@ -74,7 +67,7 @@ class Container extends Facade
     }
 
     /**
-     * Adds multiple definitions
+     * Adds multiple definitions.
      */
     public static function setMany(iterable $definitions): void
     {
@@ -82,11 +75,15 @@ class Container extends Facade
     }
 
     /**
-     * Adds an handler to manage entry resolution (after params have been resolved)
+     * Adds an handler to manage entry resolution (after params have been resolved).
      */
     public static function addContainerResolver(ContainerResolver $resolver, ?int $priority = null): void
     {
         static::getFacadeRoot()->addContainerResolver($resolver, $priority);
     }
 
+    protected static function getFacadeAccessor(): string
+    {
+        return static::getAlias();
+    }
 }

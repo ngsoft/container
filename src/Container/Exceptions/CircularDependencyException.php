@@ -6,5 +6,4 @@ namespace NGSOFT\Container\Exceptions;
 
 class CircularDependencyException extends ContainerError
 {
-
 }

@@ -12,7 +12,8 @@ class ParameterResolver
 {
     public function __construct(
         protected ContainerInterface $container
-    ) {}
+    ) {
+    }
 
     public function canResolve(string $id, mixed $value): bool
     {

@@ -7,7 +7,6 @@ namespace NGSOFT\Container;
 /** @phan-file-suppress PhanUnusedPublicMethodParameter */
 class NullServiceProvider implements ServiceProvider
 {
-
     protected array $provides = [];
 
     public function __construct(string|array $provides = [])
@@ -22,7 +21,5 @@ class NullServiceProvider implements ServiceProvider
 
     public function register(ContainerInterface $container): void
     {
-
     }
-
 }

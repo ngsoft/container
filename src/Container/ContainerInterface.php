@@ -8,7 +8,6 @@ use Psr\Container\ContainerInterface as PsrContainerInterface;
 
 interface ContainerInterface extends PsrContainerInterface
 {
-
     /**
      * Resolves an entry by its name. If given a class name, it will return a fresh instance of that class.
      */
@@ -20,22 +19,22 @@ interface ContainerInterface extends PsrContainerInterface
     public function call(object|array|string $callable, array $parameters = []): mixed;
 
     /**
-     * Add a definition to the container
+     * Add a definition to the container.
      */
     public function set(string $id, mixed $value): void;
 
     /**
-     * Adds multiple definitions
+     * Adds multiple definitions.
      */
     public function setMany(iterable $definitions): void;
 
     /**
-     * Register a service
+     * Register a service.
      */
     public function register(ServiceProvider $service): void;
 
     /**
-     * Alias an entry to a different name
+     * Alias an entry to a different name.
      */
     public function alias(string|array $alias, string $id): void;
 }

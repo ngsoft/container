@@ -4,20 +4,18 @@ declare(strict_types=1);
 
 namespace NGSOFT\Container\Resolvers;
 
-use Psr\Log\{
-    LoggerAwareInterface, LoggerInterface
-};
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerInterface;
 
 /**
- * Injects Logger
+ * Injects Logger.
  */
 class LoggerAwareResolver extends ContainerResolver
 {
-
     public function resolve(mixed $value): mixed
     {
-
-        if ($value instanceof LoggerAwareInterface) {
+        if ($value instanceof LoggerAwareInterface)
+        {
             $value->setLogger($this->container->get(LoggerInterface::class));
         }
 
@@ -28,5 +26,4 @@ class LoggerAwareResolver extends ContainerResolver
     {
         return self::PRIORITY_LOW;
     }
-
 }

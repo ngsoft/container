@@ -15,7 +15,9 @@ abstract class Facade
 
     private static ?Facade $innerFacade     = null;
 
-    private function __construct() {}
+    private function __construct()
+    {
+    }
 
     /**
      * Handle dynamic, static calls to the object.
