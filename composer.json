@@ -1,5 +1,5 @@
 {
-  "name": "ngsoft/tools",
+  "name": "ngsoft/container",
   "description": "An auto-wired dependency injection container",
   "keywords": [
     "container",
