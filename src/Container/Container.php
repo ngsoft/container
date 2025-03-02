@@ -22,7 +22,7 @@ class Container implements ContainerInterface
 
     use Unserializable;
 
-    public const VERSION            = '1.0.0';
+    public const VERSION            = '1.1.0';
 
     protected const RESOLVERS       = [
         InjectProperties::class,
@@ -107,7 +107,6 @@ class Container implements ContainerInterface
     {
         $this->loadService($id);
         $abstract = $this->getAlias($id);
-
         return array_key_exists($abstract, $this->resolved) || array_key_exists($abstract, $this->definitions) || $this->canResolve($id);
     }
 
@@ -141,7 +140,7 @@ class Container implements ContainerInterface
             return $this->resolveCall($callable, $parameters);
         } catch (\Throwable $prev)
         {
-            throw new ContainerError('Cannot call callable: ' . (is_string($callable) ? $callable : var_export($callable, true)), previous: $prev);
+            throw new ContainerError('Cannot call callable: ' . (is_string($callable) ? $callable : $this->debugString($callable)), previous: $prev);
         }
     }
 
@@ -191,6 +190,25 @@ class Container implements ContainerInterface
             $priority = $resolver->getDefaultPriority();
         }
         $this->containerResolvers->add($resolver, $priority);
+    }
+
+    protected function debugString(array|object $callable): string
+    {
+        if (is_array($callable))
+        {
+            $class = is_object($callable[0]) ? get_class($callable[0]) : $callable[0];
+
+            if (count($callable) > 1)
+            {
+                $method = $callable[1];
+
+                return sprintf('%s::%s()', $class, $method);
+            }
+
+            return sprintf('%s', $class);
+        }
+
+        return get_class($callable);
     }
 
     /**

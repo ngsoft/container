@@ -6,7 +6,7 @@ namespace NGSOFT\Container\Exceptions;
 
 class ResolverException extends ContainerError
 {
-    public static function notTwice(object $resolver)
+    public static function notTwice(object $resolver): static
     {
         return new static(
             sprintf('Cannot add the same resolver [%s#%d] instance twice.', get_class($resolver), spl_object_id($resolver))
