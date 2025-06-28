@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace NGSOFT\Container\Attribute;
 
-use Attribute;
 use NGSOFT\Container\Exceptions\ContainerError;
+use NGSOFT\Container\Utils;
 
 #[\Attribute(\Attribute::TARGET_PROPERTY | \Attribute::TARGET_METHOD | \Attribute::TARGET_PARAMETER)]
 final class Inject implements \Stringable
@@ -14,7 +14,7 @@ final class Inject implements \Stringable
     public array $parameters = [];
 
     public function __construct(
-        string|array $name = ''
+        array|string $name = ''
     ) {
         if ( ! is_string($name))
         {
@@ -53,6 +53,6 @@ final class Inject implements \Stringable
             }
             $param .= ']';
         }
-        return sprintf('#[%s(%s)]', class_basename(self::class), $param);
+        return sprintf('#[%s(%s)]', Utils::classBasename(self::class), $param);
     }
 }

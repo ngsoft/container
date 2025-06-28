@@ -12,12 +12,16 @@ class SimpleServiceProvider implements ServiceProvider
         array|string $provides,
         protected mixed $register
     ) {
-        $this->provides = (array) $provides;
+        if ( ! is_array($provides))
+        {
+            $provides = [$provides];
+        }
+        $this->provides = $provides;
     }
 
     public function provides(): array
     {
-        return array_values($this->provides);
+        return array_values(array_unique($this->provides));
     }
 
     public function register(ContainerInterface $container): void
@@ -35,7 +39,7 @@ class SimpleServiceProvider implements ServiceProvider
             return;
         }
 
-        if (is_string($entry) && is_instantiable($entry))
+        if (is_string($entry) && Utils::isInstantiable($entry))
         {
             $entry = $container->make($entry);
         }

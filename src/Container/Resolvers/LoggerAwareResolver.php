@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace NGSOFT\Container\Resolvers;
 
+use NGSOFT\Container\Priority;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 
@@ -24,6 +25,6 @@ class LoggerAwareResolver extends ContainerResolver
 
     public function getDefaultPriority(): int
     {
-        return self::PRIORITY_LOW;
+        return Priority::LOW->value;
     }
 }

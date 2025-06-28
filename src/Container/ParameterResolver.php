@@ -12,12 +12,11 @@ class ParameterResolver
 {
     public function __construct(
         protected ContainerInterface $container
-    ) {
-    }
+    ) {}
 
     public function canResolve(string $id, mixed $value): bool
     {
-        return is_instantiable($id) || null !== $value;
+        return Utils::isInstantiable($id) || null !== $value;
     }
 
     public function resolve(array|object|string $callable, array $providedParameters = []): mixed

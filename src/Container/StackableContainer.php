@@ -6,19 +6,19 @@ namespace NGSOFT\Container;
 
 use NGSOFT\Container\Exceptions\ContainerError;
 use NGSOFT\Container\Exceptions\NotFound;
-use NGSOFT\Traits\StringableObject;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 
 final class StackableContainer implements ContainerInterface, \Stringable
 {
-    use StringableObject;
+    private ?ContainerInterface $container = null;
+    private ?self $next                    = null;
 
-    protected ?ContainerInterface $container = null;
-    protected ?self $next                    = null;
-
+    /**
+     * @param ContainerInterface|ContainerInterface[] $containers
+     */
     public function __construct(
-        ContainerInterface|array $containers
+        array|ContainerInterface $containers
     ) {
         if ( ! is_array($containers))
         {
@@ -30,14 +30,19 @@ final class StackableContainer implements ContainerInterface, \Stringable
             throw new \InvalidArgumentException('No container supplied');
         }
 
-        foreach (array_values($containers) as $index => $container)
+        foreach (array_values(array_unique($containers)) as $index => $container)
         {
             if ( ! $container instanceof ContainerInterface)
             {
-                throw new \InvalidArgumentException(sprintf('Invalid $containers[%d] type: %s expected, %s given', $index, ContainerInterface::class, \get_debug_type($container)));
+                throw new \InvalidArgumentException(sprintf('Invalid $containers[%d] type: %s expected, %s given', $index, ContainerInterface::class, get_debug_type($container)));
             }
             $this->addContainer($container);
         }
+    }
+
+    public function __toString(): string
+    {
+        return sprintf('object(%s)#%d', get_class($this), spl_object_id($this));
     }
 
     /**

@@ -16,7 +16,7 @@ interface ContainerInterface extends PsrContainerInterface
     /**
      * Call the given function using the given parameters.
      */
-    public function call(object|array|string $callable, array $parameters = []): mixed;
+    public function call(array|object|string $callable, array $parameters = []): mixed;
 
     /**
      * Add a definition to the container.
@@ -36,5 +36,5 @@ interface ContainerInterface extends PsrContainerInterface
     /**
      * Alias an entry to a different name.
      */
-    public function alias(string|array $alias, string $id): void;
+    public function alias(array|string $alias, string $id): void;
 }

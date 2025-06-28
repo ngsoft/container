@@ -1,7 +1,7 @@
 {
   "name": "ngsoft/container",
   "description": "An auto-wired dependency injection container",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "keywords": [
     "container",
     "di",
@@ -23,14 +23,13 @@
     "psr/container-implementation": "^1.1|^2.0"
   },
   "require-dev": {
-    "friendsofphp/php-cs-fixer": "^3.70",
-    "phan/phan": "^5.4"
+    "friendsofphp/php-cs-fixer": "^3",
+    "phan/phan": "^5"
   },
   "require": {
-    "php": ">=8.1",
-    "psr/container": "^1.1|^2.0.1",
-    "psr/log": "^1|^2|^3",
-    "ngsoft/tools": "^4"
+    "php": ">=8.2",
+    "psr/container": "^1.1|^2.0",
+    "psr/log": "^1|^2|^3"
   },
   "autoload": {
     "psr-4": {

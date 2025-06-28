@@ -11,18 +11,12 @@ use NGSOFT\Container\Exceptions\ResolverException;
 use NGSOFT\Container\Resolvers\ContainerResolver;
 use NGSOFT\Container\Resolvers\InjectProperties;
 use NGSOFT\Container\Resolvers\LoggerAwareResolver;
-use NGSOFT\DataStructure\PrioritySet;
-use NGSOFT\Traits\StringableObject;
-use NGSOFT\Traits\Unserializable;
+use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface as PsrContainerInterface;
 
 class Container implements ContainerInterface
 {
-    use StringableObject;
-
-    use Unserializable;
-
-    public const VERSION            = '1.1.0';
+    public const VERSION            = '2.0.0';
 
     protected const RESOLVERS       = [
         InjectProperties::class,
@@ -65,6 +59,21 @@ class Container implements ContainerInterface
         $this->set(static::class, $this);
         $this->alias([PsrContainerInterface::class, ContainerInterface::class, 'Container'], static::class);
         $this->setMany($definitions);
+    }
+
+    final public function __sleep(): array
+    {
+        throw new \BadMethodCallException('Cannot serialize ' . static::class);
+    }
+
+    final public function __wakeup(): void
+    {
+        throw new \BadMethodCallException('Cannot unserialize ' . static::class);
+    }
+
+    public function __toString(): string
+    {
+        return sprintf('object(%s)#%d', get_class($this), spl_object_id($this));
     }
 
     public function __debugInfo()
@@ -116,7 +125,7 @@ class Container implements ContainerInterface
         {
             $this->loadService($id);
             return $this->resolved[$this->getAlias($id)] ??= $this->resolve($id);
-        } catch (\Throwable $prev)
+        } catch (ContainerExceptionInterface $prev)
         {
             throw NotFound::for($id, $prev);
         }
@@ -127,7 +136,7 @@ class Container implements ContainerInterface
         try
         {
             return $this->resolve($id, $parameters);
-        } catch (\Throwable $prev)
+        } catch (ContainerExceptionInterface $prev)
         {
             throw NotFound::for($id, $prev);
         }
@@ -138,7 +147,7 @@ class Container implements ContainerInterface
         try
         {
             return $this->resolveCall($callable, $parameters);
-        } catch (\Throwable $prev)
+        } catch (ContainerExceptionInterface $prev)
         {
             throw new ContainerError('Cannot call callable: ' . (is_string($callable) ? $callable : $this->debugString($callable)), previous: $prev);
         }
@@ -278,7 +287,7 @@ class Container implements ContainerInterface
             if ($def instanceof \Closure)
             {
                 $resolved = $this->parameterResolver->resolve($def, $providedParams);
-            } elseif (\is_instantiable($abstract))
+            } elseif (Utils::isInstantiable($abstract))
             {
                 $resolved = $this->parameterResolver->resolve($abstract, $providedParams);
             }

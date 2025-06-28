@@ -1,0 +1,20 @@
+{
+  "recommendations": [
+    "christian-kohler.path-intellisense",
+    "yzhang.markdown-all-in-one",
+    "codezombiech.gitignore",
+    "seatonjiang.gitmoji-vscode",
+    "ClemensPeters.format-json",
+    "k--kato.intellij-idea-keybindings",
+    "Atishay-Jain.All-Autocomplete",
+    "formulahendry.code-runner",
+    "Chouzz.vscode-better-align",
+    "alefragnani.Bookmarks",
+    "tintinweb.vscode-inline-bookmarks",
+    "akamud.vscode-caniuse",
+    "DEVSENSE.phptools-vscode",
+    "VisualStudioExptTeam.vscodeintellicode",
+    "VisualStudioExptTeam.intellicode-api-usage-examples",
+    "VisualStudioExptTeam.vscodeintellicode-completions"
+  ]
+}

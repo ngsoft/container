@@ -1,7 +1,6 @@
-.*
-!.gitignore
-!.phan
-!.php-cs-fixer.php
 *.lock
+*.cache
 vendor
 .idea
+.vscode/bookmarks.json
+tests

@@ -23,8 +23,6 @@ return [
     'directory_list'                              => [
         'src',
         'vendor',
-        //        '../ngsoft-tools/lib/',
-        //        '../ngsoft-tools/src/',
     ],
     // A directory list that defines files that will be excluded
     // from static analysis, but whose class and method
@@ -39,8 +37,6 @@ return [
     //       to `exclude_analysis_directory_list`.
     'exclude_analysis_directory_list'             => [
         'vendor/',
-        '../ngsoft-tools/lib/',
-        '../ngsoft-tools/src/',
     ],
     // A list of plugin files to execute.
     // See https://github.com/phan/phan/tree/master/.phan/plugins for even more.

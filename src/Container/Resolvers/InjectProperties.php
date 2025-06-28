@@ -1,11 +1,12 @@
 <?php
 
+/** @noinspection PhpExpressionResultUnusedInspection */
+
 declare(strict_types=1);
 
 namespace NGSOFT\Container\Resolvers;
 
 use NGSOFT\Container\Attribute\Inject;
-use NGSOFT\Facades\Logger;
 use Psr\Container\ContainerExceptionInterface;
 use ReflectionAttribute;
 use ReflectionProperty;
@@ -83,13 +84,6 @@ class InjectProperties extends ContainerResolver
                                 }
                             }
                         }
-                        Logger::debug(sprintf(
-                            'Cannot use %s on object(%s)#%d::$%s',
-                            $inject,
-                            get_class($value),
-                            spl_object_id($value),
-                            $name
-                        ));
                     }
                 }
             }
