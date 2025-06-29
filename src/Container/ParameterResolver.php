@@ -119,9 +119,9 @@ class ParameterResolver
                     continue;
                 }
 
-                while ($value = array_shift($provided))
+                while (count($provided))
                 {
-                    $params[] = $value;
+                    $params[] = array_shift($provided);
                 }
                 continue;
             }

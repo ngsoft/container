@@ -16,7 +16,7 @@ use Psr\Container\ContainerInterface as PsrContainerInterface;
 
 class Container implements ContainerInterface
 {
-    public const VERSION            = '2.0.0';
+    public const VERSION            = '2.0.1';
 
     protected const RESOLVERS       = [
         InjectProperties::class,
