@@ -1,155 +1,154 @@
 <?php
 
-declare(strict_types=1);
-
 namespace NGSOFT\Container;
 
-use NGSOFT\Container\Exceptions\CircularDependencyException;
-use NGSOFT\Container\Exceptions\ContainerError;
-use NGSOFT\Container\Exceptions\NotFound;
-use NGSOFT\Container\Exceptions\ResolverException;
-use NGSOFT\Container\Resolvers\ContainerResolver;
-use NGSOFT\Container\Resolvers\InjectProperties;
-use NGSOFT\Container\Resolvers\LoggerAwareResolver;
 use Psr\Container\ContainerExceptionInterface;
-use Psr\Container\ContainerInterface as PsrContainerInterface;
 
-class Container implements ContainerInterface
+final class Container implements Version, ContainerInterface
 {
-    public const VERSION            = '2.0.1';
-
-    protected const RESOLVERS       = [
-        InjectProperties::class,
-        LoggerAwareResolver::class,
-    ];
-
-    /** @var array<string, string> */
-    protected array $aliases        = [];
-
+    /** @var array<string,string> */
+    private array $aliases     = [];
     /** @var ServiceProvider[] */
-    protected array $services       = [];
+    private array $services    = [];
 
-    /** @var bool[] */
-    protected array $loadedServices = [];
+    /** @var array<string,bool> */
+    private array $loaded      = [];
 
-    /** @var \Closure[] */
-    protected array $definitions    = [];
+    /** @var array<string,bool> */
+    private array $resolve     = [];
 
-    /** @var bool[] */
-    protected array $resolving      = [];
+    /** @var array<string, \Closure> */
+    private array $definitions = [];
 
-    /** @var array<string,mixed> */
-    protected array $resolved       = [];
-    protected ParameterResolver $parameterResolver;
-    protected PrioritySet $containerResolvers;
+    /** @var array<string, mixed> */
+    private array $shared      = [];
 
-    public function __construct(
-        iterable $definitions = []
-    ) {
-        $this->parameterResolver  = new ParameterResolver($this);
-        $this->containerResolvers = PrioritySet::create();
+    /** @var array<int, Resolver[]> */
+    private array $resolvers   = [];
 
-        foreach (self::RESOLVERS as $resolver)
-        {
-            $this->addContainerResolver(new $resolver($this));
-        }
-
-        $this->set(__CLASS__, $this);
-        // if extended
-        $this->set(static::class, $this);
-        $this->alias([PsrContainerInterface::class, ContainerInterface::class, 'Container'], static::class);
-        $this->setMany($definitions);
+    public function __construct()
+    {
+        $this->shared[__CLASS__]
+            = $this->aliases[ContainerInterface::class]
+            = $this->aliases[\Psr\Container\ContainerInterface::class]
+            = __CLASS__;
+        $this->addResolver(new CallableResolver($this));
     }
 
-    final public function __sleep(): array
+    public function addResolver(Resolver $resolver, int $priority = 128): static
     {
-        throw new \BadMethodCallException('Cannot serialize ' . static::class);
-    }
-
-    final public function __wakeup(): void
-    {
-        throw new \BadMethodCallException('Cannot unserialize ' . static::class);
-    }
-
-    public function __toString(): string
-    {
-        return sprintf('object(%s)#%d', get_class($this), spl_object_id($this));
-    }
-
-    public function __debugInfo()
-    {
-        $entries            = [];
-
-        foreach (array_keys($this->resolved) as $id)
-        {
-            $value        = $this->resolved[$id];
-
-            if (is_object($value))
-            {
-                $entries[$id] = sprintf('object(%s)#%d', get_class($value), spl_object_id($value));
-                continue;
-            }
-
-            $entries[$id] = get_debug_type($value);
-        }
-
-        $entries['aliases'] = $this->aliases;
-
-        return $entries;
-    }
-
-    public function alias(array|string $alias, string $id): void
-    {
-        $alias = array_unique((array) $alias);
-
-        if (in_array($id, $alias))
-        {
-            throw new ContainerError(sprintf(
-                '[%s] is aliased to itself.',
-                $id
-            ));
-        }
-        $this->aliases += array_fill_keys($alias, $id);
-    }
-
-    public function has(string $id): bool
-    {
-        $this->loadService($id);
-        $abstract = $this->getAlias($id);
-        return array_key_exists($abstract, $this->resolved) || array_key_exists($abstract, $this->definitions) || $this->canResolve($id);
-    }
-
-    public function get(string $id): mixed
-    {
-        try
-        {
-            $this->loadService($id);
-            return $this->resolved[$this->getAlias($id)] ??= $this->resolve($id);
-        } catch (ContainerExceptionInterface $prev)
-        {
-            throw NotFound::for($id, $prev);
-        }
+        $this->resolvers[$priority] ??= [];
+        $this->resolvers[$priority][] = $resolver;
+        krsort($this->resolvers);
+        return $this;
     }
 
     public function make(string $id, array $parameters = []): mixed
     {
         try
         {
-            return $this->resolve($id, $parameters);
-        } catch (ContainerExceptionInterface $prev)
+            $value = $this->resolve($this->a($id));
+
+            if (null !== $value)
+            {
+                return $value;
+            }
+        } catch (ContainerExceptionInterface $previous)
         {
-            throw NotFound::for($id, $prev);
+            throw NotFoundException::of($id, $previous);
         }
+
+        throw NotFoundException::of($id);
     }
 
     public function call(array|object|string $callable, array $parameters = []): mixed
     {
         try
         {
-            return $this->resolveCall($callable, $parameters);
-        } catch (ContainerExceptionInterface $prev)
+            if (is_string($callable))
+            {
+                $cm       = preg_split('#[:@]+#', $callable);
+
+                $callable = match (count($cm))
+                {
+                    2       => $cm,
+                    1       => $cm[0],
+                    default => throw new ResolverException('Invalid Callable: ' . $callable),
+                };
+            }
+            $value = $this->r($callable, $parameters);
+
+            if (null !== $value)
+            {
+                return $value;
+            }
+        } catch (ContainerExceptionInterface $previous)
         {
-            throw new ContainerError('Cannot call callable: ' . (is_string($callable) ? $callable : $this->debugString($callable)), previous: $prev);
+            throw ResolverException::invalidCallable($callable, $previous);
+        }
+
+        throw ResolverException::invalidCallable($callable);
+    }
+
+    public function set(string $id, mixed $value): void
+    {
+        $id                = $this->a($id);
+        unset($this->shared[$id]);
+
+        if ($value instanceof \Closure)
+        {
+            $this->definitions[$id] = $value;
+            return;
+        }
+        $this->shared[$id] = $value;
+    }
+
+    public function get(string $id)
+    {
+        try
+        {
+            $this->load($id);
+            return $this->shared[$id] ??= $this->make($id);
+        } catch (ContainerExceptionInterface $previous)
+        {
+            if ($previous instanceof NotFoundException)
+            {
+                throw $previous;
+            }
+            throw NotFoundException::of($id, $previous);
+        }
+    }
+
+    public function alias(array|string $alias, string $id): void
+    {
+        if ( ! is_array($alias))
+        {
+            $alias = [$alias];
+        }
+        $alias = array_values(
+            array_filter(
+                array_unique($alias),
+                fn ($a) => $a !== $id
+            )
+        );
+
+        $this->aliases += array_fill_keys($alias, $id);
+    }
+
+    public function has(string $id): bool
+    {
+        $id = $this->a($id);
+        return isset($this->shared[$id])
+            || isset($this->services[$id])
+            || isset($this->definitions[$id])
+            || $this->canResolve($id);
+    }
+
+    public function setMany(iterable $definitions): void
+    {
+        foreach ($definitions as $id => $value)
+        {
+            $this->set($id, $value);
         }
     }
 
@@ -162,160 +161,80 @@ class Container implements ContainerInterface
 
         foreach (array_unique($service->provides()) as $id)
         {
+            unset($this->loaded[$id], $this->shared[$id]);
             $this->services[$id] = $service;
-            unset($this->resolved[$id], $this->loadedServices[$id]);
         }
     }
 
-    public function set(string $id, mixed $value): void
+    private function canResolve(string $id): bool
     {
-        $abstract                  = $this->getAlias($id);
-        unset($this->resolved[$abstract]);
-
-        if ($value instanceof \Closure)
+        foreach ($this->resolvers as $resolvers)
         {
-            $this->definitions[$abstract] = $value;
-            return;
-        }
-
-        $this->resolved[$abstract] = $value;
-    }
-
-    public function setMany(iterable $definitions): void
-    {
-        foreach ($definitions as $id => $value)
-        {
-            $this->set($id, $value);
-        }
-    }
-
-    /**
-     * Adds a handler to manage entry resolution (after params have been resolved).
-     */
-    public function addContainerResolver(ContainerResolver $resolver, ?int $priority = null): void
-    {
-        if ( ! $priority)
-        {
-            $priority = $resolver->getDefaultPriority();
-        }
-        $this->containerResolvers->add($resolver, $priority);
-    }
-
-    protected function debugString(array|object $callable): string
-    {
-        if (is_array($callable))
-        {
-            $class = is_object($callable[0]) ? get_class($callable[0]) : $callable[0];
-
-            if (count($callable) > 1)
+            foreach ($resolvers as $resolver)
             {
-                $method = $callable[1];
-
-                return sprintf('%s::%s()', $class, $method);
+                if ($resolver->canResolve($id))
+                {
+                    return true;
+                }
             }
-
-            return sprintf('%s', $class);
         }
 
-        return get_class($callable);
+        return false;
     }
 
-    /**
-     * Resolves alias.
-     */
-    protected function getAlias(string $id): string
-    {
-        return isset($this->aliases[$id]) ? $this->getAlias($this->aliases[$id]) : $id;
-    }
-
-    protected function loadService(string $id): void
+    private function load(string $id): void
     {
         if (
-            ! isset($this->loadedServices[$id])
+            ! isset($this->loaded[$id])
             && $provider = $this->services[$id] ?? null
         ) {
+            $provider->register($this);
+
             foreach ($provider->provides() as $service)
             {
-                $this->loadedServices[$service] = true;
+                $this->loaded[$service] = true;
             }
-
-            $provider->register($this);
         }
     }
 
-    protected function resolveCall(array|object|string $callable, array $providedParams): mixed
+    private function a(string $id): string
     {
-        // Class@method(), Class::method()
-        if (is_string($callable))
+        if (isset($this->aliases[$id]))
         {
-            $cm       = preg_split('#[:@]+#', $callable);
-
-            $callable = match (count($cm))
-            {
-                2       => $cm,
-                1       => $cm[0],
-                default => throw new ContainerError('Invalid Callable: ' . $callable),
-            };
+            return $this->a($this->aliases[$id]);
         }
-
-        return $this->parameterResolver->resolve($callable, $providedParams);
+        return $id;
     }
 
-    protected function resolve(string $id, array $providedParams = []): mixed
+    private function r(mixed $value, array $parameters = []): mixed
     {
-        $resolving = &$this->resolving;
-
-        $abstract  = $this->getAlias($id);
-
-        if (isset($resolving[$abstract]))
+        foreach ($this->resolvers as $resolvers)
         {
-            throw new CircularDependencyException(
-                sprintf(
-                    'Container is already resolving [%s].',
-                    $id
-                )
-            );
-        }
-
-        $resolved  = null;
-
-        if ($this->canResolve($abstract))
-        {
-            $resolving[$abstract] = true;
-            $def                  = $this->definitions[$abstract] ?? null;
-
-            if ($def instanceof \Closure)
+            foreach ($resolvers as $resolver)
             {
-                $resolved = $this->parameterResolver->resolve($def, $providedParams);
-            } elseif (Utils::isInstantiable($abstract))
-            {
-                $resolved = $this->parameterResolver->resolve($abstract, $providedParams);
+                if (null !== $value = $resolver->resolve($value, $parameters))
+                {
+                    return $value;
+                }
             }
-
-            unset($resolving[$abstract]);
         }
-
-        if (is_null($resolved))
-        {
-            throw new ResolverException(
-                sprintf(
-                    'Cannot resolve [%s]',
-                    $id
-                )
-            );
-        }
-
-        /** @var ContainerResolver $resolver */
-        foreach ($this->containerResolvers as $resolver)
-        {
-            $resolved = $resolver->resolve($resolved);
-        }
-
-        return $resolved;
+        return null;
     }
 
-    protected function canResolve(string $id): bool
+    private function resolve(string $id): mixed
     {
-        return $this->parameterResolver->canResolve($id, $this->definitions[$id] ?? null);
+        if ( ! empty($this->resolve[$id]))
+        {
+            throw CircularDependencyException::of($id);
+        }
+
+        try
+        {
+            $this->resolve[$id] = true;
+            return $this->r($this->definitions[$id] ?? $id);
+        } finally
+        {
+            $this->resolve[$id] = false;
+        }
     }
 }

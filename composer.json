@@ -1,11 +1,10 @@
 {
   "name": "ngsoft/container",
   "description": "An auto-wired dependency injection container",
-  "version": "2.0.1",
+  "version": "3.0.0",
   "keywords": [
     "container",
     "di",
-    "facade",
     "PSR-11",
     "attribute",
     "reflection"
@@ -28,8 +27,7 @@
   },
   "require": {
     "php": ">=8.2",
-    "psr/container": "^1.1|^2.0",
-    "psr/log": "^1|^2|^3"
+    "psr/container": "^1.1|^2.0"
   },
   "autoload": {
     "psr-4": {

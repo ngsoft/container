@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace NGSOFT\Container;
 
-use Psr\Container\ContainerInterface as PsrContainerInterface;
-
-interface ContainerInterface extends PsrContainerInterface
+interface ContainerInterface extends \Psr\Container\ContainerInterface
 {
     /**
      * Resolves an entry by its name. If given a class name, it will return a fresh instance of that class.

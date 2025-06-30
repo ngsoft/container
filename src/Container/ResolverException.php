@@ -1,23 +1,16 @@
 <?php
 
-declare(strict_types=1);
+namespace NGSOFT\Container;
 
-namespace NGSOFT\Container\Exceptions;
+use Psr\Container\ContainerExceptionInterface;
 
-class ResolverException extends ContainerError
+class ResolverException extends \RuntimeException implements ContainerExceptionInterface
 {
-    public static function notTwice(object $resolver): static
-    {
-        return new static(
-            sprintf('Cannot add the same resolver [%s#%d] instance twice.', get_class($resolver), spl_object_id($resolver))
-        );
-    }
-
-    public static function invalidCallable(mixed $callable): static
+    public static function invalidCallable(mixed $callable, ?\Throwable $prev = null): static
     {
         if (is_object($callable))
         {
-            $message = sprintf('Instance of %s is not a callable', get_class($callable));
+            $message = sprintf('Instance of %s does not implements __invoke()', get_class($callable));
         } elseif (is_array($callable) && isset($callable[0], $callable[1]))
         {
             $class   = is_object($callable[0]) ? get_class($callable[0]) : $callable[0];
@@ -28,6 +21,6 @@ class ResolverException extends ContainerError
             $message = var_export($callable, true) . ' is not a callable';
         }
 
-        return new static($message);
+        return new static($message, previous: $prev);
     }
 }
