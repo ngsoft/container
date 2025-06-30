@@ -28,10 +28,10 @@ final class Container implements Version, ContainerInterface
 
     public function __construct()
     {
-        $this->shared[__CLASS__]
-            = $this->aliases[ContainerInterface::class]
-            = $this->aliases[\Psr\Container\ContainerInterface::class]
-            = __CLASS__;
+        $this->shared[__CLASS__] = $this;
+        $this->aliases[ContainerInterface::class]
+                                 = $this->aliases[\Psr\Container\ContainerInterface::class]
+                                 = __CLASS__;
         $this->addResolver(new CallableResolver($this));
     }
 
