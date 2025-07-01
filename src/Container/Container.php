@@ -1,14 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace NGSOFT\Container;
 
+use NGSOFT\Container\Exception\CircularDependencyException;
+use NGSOFT\Container\Exception\NotFoundException;
+use NGSOFT\Container\Exception\ResolverException;
+use NGSOFT\Container\Internal\UnmatchedEntry;
 use Psr\Container\ContainerExceptionInterface;
 
 final class Container implements Version, ContainerInterface
 {
     /** @var array<string,string> */
     private array $aliases     = [];
-    /** @var ServiceProvider[] */
+    /** @var array<string,ServiceProvider> */
     private array $services    = [];
 
     /** @var array<string,bool> */
@@ -32,6 +38,9 @@ final class Container implements Version, ContainerInterface
         $this->aliases[ContainerInterface::class]
                                  = $this->aliases[\Psr\Container\ContainerInterface::class]
                                  = __CLASS__;
+
+        $this->addResolver(new RequiredResolver($this));
+
         $this->addResolver(new CallableResolver($this));
     }
 
@@ -76,18 +85,11 @@ final class Container implements Version, ContainerInterface
                     default => throw new ResolverException('Invalid Callable: ' . $callable),
                 };
             }
-            $value = $this->r($callable, $parameters);
-
-            if (null !== $value)
-            {
-                return $value;
-            }
+            return $this->r($callable, $parameters);
         } catch (ContainerExceptionInterface $previous)
         {
             throw ResolverException::invalidCallable($callable, $previous);
         }
-
-        throw ResolverException::invalidCallable($callable);
     }
 
     public function set(string $id, mixed $value): void
@@ -172,7 +174,7 @@ final class Container implements Version, ContainerInterface
         {
             foreach ($resolvers as $resolver)
             {
-                if ($resolver->canResolve($id))
+                if ($resolver instanceof CanResolve && $resolver->canResolve($id))
                 {
                     return true;
                 }
@@ -188,12 +190,11 @@ final class Container implements Version, ContainerInterface
             ! isset($this->loaded[$id])
             && $provider = $this->services[$id] ?? null
         ) {
-            $provider->register($this);
-
             foreach ($provider->provides() as $service)
             {
                 $this->loaded[$service] = true;
             }
+            $provider->register($this);
         }
     }
 
@@ -212,13 +213,18 @@ final class Container implements Version, ContainerInterface
         {
             foreach ($resolvers as $resolver)
             {
-                if (null !== $value = $resolver->resolve($value, $parameters))
+                $resolved = $resolver->resolve($value, $parameters);
+
+                if ($resolved instanceof UnmatchedEntry)
                 {
-                    return $value;
+                    continue;
                 }
+
+                return $resolved;
             }
         }
-        return null;
+
+        throw new ResolverException('Cannot resolve value.');
     }
 
     private function resolve(string $id): mixed

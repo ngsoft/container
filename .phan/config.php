@@ -80,6 +80,8 @@ return [
         'PhanAbstractStaticMethodCallInStatic',
         'PhanTypeMismatchArgumentNullableInternal',
         'PhanTypeInstantiateAbstractStatic',
+        'PhanUnextractableAnnotationSuffix',
+        'PhanTemplateTypeNotUsedInFunctionReturn',
     ],
     // If true, seemingly undeclared variables in the global
     // scope will be ignored.

@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace NGSOFT\Reflection;
 
 class ReflectParameter
 {
     private string $name;
-    private int $index;
+    private int $index = 0;
     private bool $variadic;
     private bool $optional;
     private array $types;
@@ -26,7 +28,13 @@ class ReflectParameter
         return $this->name;
     }
 
-    public function getIndex(): int
+    public function setIndex(int $index): static
+    {
+        $this->index = $index;
+        return $this;
+    }
+
+    public function getIndex(): ?int
     {
         return $this->index;
     }
@@ -39,6 +47,11 @@ class ReflectParameter
     public function isOptional(): bool
     {
         return $this->optional;
+    }
+
+    public function isNullable(): bool
+    {
+        return in_array('null', $this->types);
     }
 
     /**

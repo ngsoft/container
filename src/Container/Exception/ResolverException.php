@@ -1,6 +1,6 @@
 <?php
 
-namespace NGSOFT\Container;
+namespace NGSOFT\Container\Exception;
 
 use Psr\Container\ContainerExceptionInterface;
 
