@@ -55,41 +55,27 @@ class RequiredResolver implements Resolver
                 foreach ($this->reader->getClassPropertiesAttributes(Required::class, $value) as list(, , $property))
                 {
                     /** @var string $property */
-                    $parameter = $this->reflect->reflectProperty(new \ReflectionProperty($value, $property));
+                    $parameter = $this->reflect->reflectProperty($context = new \ReflectionProperty($value, $property));
 
                     if ($type = $this->findClassName($parameter))
                     {
                         // throw if not found
                         $instance = $this->container->get($type);
 
-                        try
-                        {
-                            $context = new \ReflectionProperty($value, $property);
-                            $context->setValue($value, $instance);
-                            continue;
-                        } catch (\ReflectionException)
-                        {
-                        }
-                    } elseif ($parameter->hasDefaultValue())
+                        $context->setValue($value, $instance);
+                        continue;
+                    }
+
+                    if ($parameter->hasDefaultValue())
                     {
-                        try
-                        {
-                            $context = new \ReflectionProperty($value, $property);
-                            $context->setValue($value, $parameter->getDefaultValue());
-                            continue;
-                        } catch (\ReflectionException)
-                        {
-                        }
-                    } elseif ($parameter->isNullable())
+                        $context->setValue($value, $parameter->getDefaultValue());
+                        continue;
+                    }
+
+                    if ($parameter->isNullable())
                     {
-                        try
-                        {
-                            $context = new \ReflectionProperty($value, $property);
-                            $context->setValue($value, null);
-                            continue;
-                        } catch (\ReflectionException)
-                        {
-                        }
+                        $context->setValue($value, null);
+                        continue;
                     }
                     throw new ResolverException(
                         sprintf(
