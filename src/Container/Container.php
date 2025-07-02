@@ -56,7 +56,14 @@ final class Container implements Version, ContainerInterface
     {
         try
         {
-            $value = $this->resolve($this->a($id));
+            $abstract = $this->a($id);
+
+            if (isset($this->definitions[$abstract]))
+            {
+                return $this->resolve($abstract, $parameters);
+            }
+
+            $value    = $this->r($abstract, $parameters);
 
             if (null !== $value)
             {
@@ -227,7 +234,7 @@ final class Container implements Version, ContainerInterface
         throw new ResolverException('Cannot resolve value.');
     }
 
-    private function resolve(string $id): mixed
+    private function resolve(string $id, array $parameters = []): mixed
     {
         if ( ! empty($this->resolve[$id]))
         {
@@ -237,7 +244,7 @@ final class Container implements Version, ContainerInterface
         try
         {
             $this->resolve[$id] = true;
-            return $this->r($this->definitions[$id] ?? $id);
+            return $this->r($this->definitions[$id] ?? $id, $parameters);
         } finally
         {
             $this->resolve[$id] = false;
