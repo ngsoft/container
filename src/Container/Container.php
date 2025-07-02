@@ -32,7 +32,7 @@ final class Container implements Version, ContainerInterface
     /** @var array<int, Resolver[]> */
     private array $resolvers   = [];
 
-    public function __construct()
+    public function __construct(?iterable $definitions = null)
     {
         $this->shared[__CLASS__] = $this;
         $this->aliases[ContainerInterface::class]
@@ -42,6 +42,11 @@ final class Container implements Version, ContainerInterface
         $this->addResolver(new RequiredResolver($this));
 
         $this->addResolver(new CallableResolver($this));
+
+        if ($definitions)
+        {
+            $this->setMany($definitions);
+        }
     }
 
     public function addResolver(Resolver $resolver, int $priority = 128): static

@@ -227,15 +227,15 @@ class CallableResolver implements Resolver, CanResolve
                             continue;
                         }
 
-                        $value      = $this->tryGetEntryFromContainer($def->getTypes());
+                        $entry      = $this->tryGetEntryFromContainer($def->getTypes());
 
-                        if (null === $value)
+                        if (null === $entry)
                         {
                             // cannot match
                             return $unmatched;
                         }
 
-                        $all[$name] = $value;
+                        $all[$name] = $entry;
                         unset($missing[$name]);
                         continue;
                     }
