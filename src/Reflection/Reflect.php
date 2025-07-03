@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NGSOFT\Reflection;
 
-class Reflect
+final readonly class Reflect
 {
     /**
      * @param array|object|string $subject

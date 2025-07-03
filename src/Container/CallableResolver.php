@@ -11,12 +11,12 @@ use NGSOFT\Reflection\Reflect;
 use NGSOFT\Reflection\ReflectParameter;
 use Psr\Container\ContainerExceptionInterface;
 
-class CallableResolver implements Resolver, CanResolve
+readonly class CallableResolver implements Resolver, CanResolve
 {
     private Reflect $reflect;
 
     public function __construct(
-        private readonly Container $container
+        private Container $container
     ) {
         $this->reflect = new Reflect();
     }

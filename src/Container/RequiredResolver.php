@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace NGSOFT\Container;
 
+use Closure;
 use NGSOFT\Container\Attribute\Required;
 use NGSOFT\Container\Exception\ResolverException;
 use NGSOFT\Container\Internal\AttributeReader;
@@ -9,16 +12,16 @@ use NGSOFT\Container\Internal\UnmatchedEntry;
 use NGSOFT\Reflection\Reflect;
 use NGSOFT\Reflection\ReflectParameter;
 
-class RequiredResolver implements Resolver
+readonly class RequiredResolver implements Resolver
 {
     private Reflect $reflect;
 
     private AttributeReader $reader;
 
-    private readonly CallableResolver $callableResolver;
+    private CallableResolver $callableResolver;
 
     public function __construct(
-        private readonly Container $container,
+        private Container $container,
     ) {
         $this->reflect          = new Reflect();
         $this->reader           = new AttributeReader();
@@ -28,6 +31,12 @@ class RequiredResolver implements Resolver
     public function resolve(mixed $value, array $params): mixed
     {
         static $unmatched = new UnmatchedEntry();
+
+        // Closure is an object
+        if ($value instanceof \Closure)
+        {
+            return $unmatched;
+        }
 
         if (empty($params))
         {
