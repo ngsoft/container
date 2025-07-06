@@ -121,8 +121,9 @@ final class Container implements Version, ContainerInterface
     {
         try
         {
-            $this->load($id);
-            return $this->shared[$id] ??= $this->make($id);
+            $abstract = $this->a($id);
+            $this->load($abstract);
+            return $this->shared[$abstract] ??= $this->make($abstract);
         } catch (ContainerExceptionInterface $previous)
         {
             if ($previous instanceof NotFoundException)
