@@ -90,6 +90,23 @@ readonly class CallableResolver implements Resolver, CanResolve
             $isStatic = $reflector->isStatic();
         }
 
+        if ( ! $isList)
+        {
+            foreach (array_keys($params) as $name)
+            {
+                if ( ! isset($missing[$name]))
+                {
+                    throw new ResolverException(
+                        sprintf(
+                            'named parameter $%s does not exists for %s.',
+                            $name,
+                            is_string($value) ? $value : get_debug_type($value)
+                        )
+                    );
+                }
+            }
+        }
+
         if (count($params) > count($missing) && ! $variadic)
         {
             throw new ResolverException(
