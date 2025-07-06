@@ -400,7 +400,7 @@ readonly class CallableResolver implements Resolver, CanResolve
 
             if ($name)
             {
-                $result[$name] = &$instance;
+                $result[$name] = $instance;
             }
         }
 
