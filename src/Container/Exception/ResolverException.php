@@ -8,7 +8,10 @@ class ResolverException extends \RuntimeException implements ContainerExceptionI
 {
     public static function invalidCallable(mixed $callable, ?\Throwable $prev = null): static
     {
-        if (is_object($callable))
+        if ($callable instanceof \Closure)
+        {
+            $message = 'Closure arguments cannot be resolved';
+        } elseif (is_object($callable))
         {
             $message = sprintf('Instance of %s does not implements __invoke()', get_class($callable));
         } elseif (is_array($callable) && isset($callable[0], $callable[1]))
