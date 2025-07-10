@@ -1,10 +1,11 @@
 {
   "name": "ngsoft/container",
   "description": "An auto-wired dependency injection container",
-  "version": "3.0.0-beta4",
+  "version": "3.0.0",
   "keywords": [
     "container",
     "di",
+    "autowiring",
     "PSR-11",
     "attribute",
     "reflection"
