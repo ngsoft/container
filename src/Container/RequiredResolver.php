@@ -107,7 +107,7 @@ readonly class RequiredResolver implements Resolver
     {
         foreach ($parameter->getTypes() as $type)
         {
-            if (class_exists($type))
+            if (class_exists($type) || interface_exists($type))
             {
                 return $type;
             }
