@@ -121,8 +121,9 @@ final class Container implements Version, ContainerInterface
     {
         try
         {
+            // services can set/override aliases
+            $this->load($this->a($id));
             $abstract = $this->a($id);
-            $this->load($abstract);
             return $this->shared[$abstract] ??= $this->make($abstract);
         } catch (ContainerExceptionInterface $previous)
         {
