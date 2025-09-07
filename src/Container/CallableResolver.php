@@ -80,7 +80,6 @@ readonly class CallableResolver implements Resolver, CanResolve
         $variadic         = (end($missing) ?: null)?->isVariadic();
         $isList           = array_is_list($params);
         $isStatic         = false;
-        $ok               = false;
 
         if ($reflector instanceof \ReflectionMethod)
         {
@@ -117,15 +116,9 @@ readonly class CallableResolver implements Resolver, CanResolve
             );
         }
 
-        if ($ok = count($missing) === count($params))
-        {
-            $all = $params;
-        }
-
         // fill missing params
         $keys             = array_keys($missing);
         $providedParams   = $this->parseParameters($params);
-
         $index            = -1;
 
         /**
@@ -140,88 +133,16 @@ readonly class CallableResolver implements Resolver, CanResolve
             if ($isList)
             {
                 /** @var ?Parameter $provided */
-                $provided = $providedParams[0] ?? null;
+                $provided = $providedParams[$index] ?? null;
 
-                if ( ! array_key_exists($index, $all))
+                if ($provided && (
+                    in_array($provided->getType(), $def->getTypes())
+                        || in_array('mixed', $def->getTypes())
+                ))
                 {
-                    if ($provided && (
-                        in_array($provided->getType(), $def->getTypes())
-                            || in_array('mixed', $def->getTypes())
-                    ))
-                    {
-                        $all[$index] = $provided->getValue();
-                        array_splice($providedParams, 0, 1);
-                        unset($missing[$name], $params[$provided->getIndex()]);
-                        continue;
-                    }
-
-                    // default value
-                    if ($def->hasDefaultValue())
-                    {
-                        unset($missing[$name]);
-                        $all[$index] = $def->getDefaultValue();
-                        continue;
-                    }
-
-                    // provided not matching
-                    if ( ! $def->isOptional())
-                    {
-                        if ($def->isNullable())
-                        {
-                            $all[$index] = null;
-                            unset($missing[$name]);
-                            continue;
-                        }
-
-                        $entry       = $this->tryGetEntryFromContainer($def->getTypes());
-
-                        if (null === $entry)
-                        {
-                            // cannot match
-                            return $unmatched;
-                        }
-
-                        $all[$index] = $entry;
-                        unset($missing[$name]);
-                        continue;
-                    }
-
-                    // is optional
-                    if ($def->isVariadic())
-                    {
-                        unset($missing[$name]);
-                        break;
-                    }
-
-                    if ($def->isNullable())
-                    {
-                        $all[$index] = null;
-                        unset($missing[$name]);
-                        continue;
-                    }
-
-                    // we cannot match
-                    if ($this->hasBuiltin($def->getTypes()))
-                    {
-                        return $unmatched;
-                    }
-                }
-
-                continue;
-            }
-
-            // not a list
-            if ( ! array_key_exists($name, $all))
-            {
-                /** @var ?Parameter $provided */
-                if ($provided = $providedParams[$name] ?? null)
-                {
-                    $all[$name] = $provided->getValue();
-                    unset(
-                        $missing[$name],
-                        $providedParams[$provided->getIndex()],
-                        $providedParams[$name]
-                    );
+                    $all[$index] = $provided->getValue();
+                    array_splice($providedParams, 0, 1);
+                    unset($missing[$name], $providedParams[$provided->getIndex()], $providedParams[$name]);
                     continue;
                 }
 
@@ -229,7 +150,7 @@ readonly class CallableResolver implements Resolver, CanResolve
                 if ($def->hasDefaultValue())
                 {
                     unset($missing[$name]);
-                    $all[$name] = $def->getDefaultValue();
+                    $all[$index] = $def->getDefaultValue();
                     continue;
                 }
 
@@ -238,12 +159,12 @@ readonly class CallableResolver implements Resolver, CanResolve
                 {
                     if ($def->isNullable())
                     {
-                        $all[$name] = null;
+                        $all[$index] = null;
                         unset($missing[$name]);
                         continue;
                     }
 
-                    $entry      = $this->tryGetEntryFromContainer($def->getTypes());
+                    $entry       = $this->tryGetEntryFromContainer($def->getTypes());
 
                     if (null === $entry)
                     {
@@ -251,7 +172,7 @@ readonly class CallableResolver implements Resolver, CanResolve
                         return $unmatched;
                     }
 
-                    $all[$name] = $entry;
+                    $all[$index] = $entry;
                     unset($missing[$name]);
                     continue;
                 }
@@ -275,6 +196,73 @@ readonly class CallableResolver implements Resolver, CanResolve
                 {
                     return $unmatched;
                 }
+
+                continue;
+            }
+
+            // not a list
+
+            /** @var ?Parameter $provided */
+            if ($provided = $providedParams[$name] ?? null)
+            {
+                $all[$name] = $provided->getValue();
+                unset(
+                    $missing[$name],
+                    $providedParams[$provided->getIndex()],
+                    $providedParams[$name]
+                );
+                continue;
+            }
+
+            // default value
+            if ($def->hasDefaultValue())
+            {
+                unset($missing[$name]);
+                $all[$name] = $def->getDefaultValue();
+                continue;
+            }
+
+            // provided not matching
+            if ( ! $def->isOptional())
+            {
+                if ($def->isNullable())
+                {
+                    $all[$name] = null;
+                    unset($missing[$name]);
+                    continue;
+                }
+
+                $entry      = $this->tryGetEntryFromContainer($def->getTypes());
+
+                if (null === $entry)
+                {
+                    // cannot match
+                    return $unmatched;
+                }
+
+                $all[$name] = $entry;
+                unset($missing[$name]);
+                continue;
+            }
+
+            // is optional
+            if ($def->isVariadic())
+            {
+                unset($missing[$name]);
+                break;
+            }
+
+            if ($def->isNullable())
+            {
+                $all[$index] = null;
+                unset($missing[$name]);
+                continue;
+            }
+
+            // we cannot match
+            if ($this->hasBuiltin($def->getTypes()))
+            {
+                return $unmatched;
             }
         }
 
