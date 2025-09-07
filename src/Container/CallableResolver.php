@@ -141,7 +141,6 @@ readonly class CallableResolver implements Resolver, CanResolve
                 ))
                 {
                     $all[$index] = $provided->getValue();
-                    array_splice($providedParams, 0, 1);
                     unset($missing[$name], $providedParams[$provided->getIndex()], $providedParams[$name]);
                     continue;
                 }
