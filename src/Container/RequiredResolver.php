@@ -4,16 +4,21 @@ declare(strict_types=1);
 
 namespace NGSOFT\Container;
 
-use Closure;
 use NGSOFT\Container\Attribute\Required;
 use NGSOFT\Container\Exception\ResolverException;
 use NGSOFT\Container\Internal\AttributeReader;
 use NGSOFT\Container\Internal\UnmatchedEntry;
 use NGSOFT\Reflection\Reflect;
 use NGSOFT\Reflection\ReflectParameter;
+use Symfony\Contracts\Service\Attribute\Required as SymfonyRequired;
 
 readonly class RequiredResolver implements Resolver
 {
+    private const REQUIRED_CLASS = [
+        Required::class,
+        SymfonyRequired::class,
+    ];
+
     private Reflect $reflect;
 
     private AttributeReader $reader;
@@ -53,47 +58,50 @@ readonly class RequiredResolver implements Resolver
 
             if (is_object($value))
             {
-                // call the methods
-                foreach ($this->reader->getClassMethodAttributes(Required::class, $value) as list(, , $method))
+                foreach (self::REQUIRED_CLASS as $required)
                 {
-                    // throw if not found
-                    $this->container->call([$value, $method]);
-                }
-
-                // inject instance
-                foreach ($this->reader->getClassPropertiesAttributes(Required::class, $value) as list(, , $property))
-                {
-                    /** @var string $property */
-                    $parameter = $this->reflect->reflectProperty($context = new \ReflectionProperty($value, $property));
-
-                    if ($type = $this->findClassName($parameter))
+                    // call the methods
+                    foreach ($this->reader->getClassMethodAttributes($required, $value) as list(, , $method))
                     {
                         // throw if not found
-                        $instance = $this->container->get($type);
-
-                        $context->setValue($value, $instance);
-                        continue;
+                        $this->container->call([$value, $method]);
                     }
 
-                    if ($parameter->hasDefaultValue())
+                    // inject instance
+                    foreach ($this->reader->getClassPropertiesAttributes($required, $value) as list(, , $property))
                     {
-                        $context->setValue($value, $parameter->getDefaultValue());
-                        continue;
-                    }
+                        /** @var string $property */
+                        $parameter = $this->reflect->reflectProperty($context = new \ReflectionProperty($value, $property));
 
-                    if ($parameter->isNullable())
-                    {
-                        $context->setValue($value, null);
-                        continue;
+                        if ($type = $this->findClassName($parameter))
+                        {
+                            // throw if not found
+                            $instance = $this->container->get($type);
+
+                            $context->setValue($value, $instance);
+                            continue;
+                        }
+
+                        if ($parameter->hasDefaultValue())
+                        {
+                            $context->setValue($value, $parameter->getDefaultValue());
+                            continue;
+                        }
+
+                        if ($parameter->isNullable())
+                        {
+                            $context->setValue($value, null);
+                            continue;
+                        }
+                        throw new ResolverException(
+                            sprintf(
+                                'cannot resolve (%s) %s::$%s',
+                                implode('|', $parameter->getTypes()),
+                                get_class($value),
+                                $parameter->getName()
+                            )
+                        );
                     }
-                    throw new ResolverException(
-                        sprintf(
-                            'cannot resolve (%s) %s::$%s',
-                            implode('|', $parameter->getTypes()),
-                            get_class($value),
-                            $parameter->getName()
-                        )
-                    );
                 }
 
                 return $value;
