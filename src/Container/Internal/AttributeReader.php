@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace NGSOFT\Container\Internal;
 
 use Spiral\Attributes\AttributeReader as SpiralAttributeReader;
+use Spiral\Attributes\Internal\Instantiator\NamedArgumentsInstantiator;
 
 readonly class AttributeReader
 {
@@ -12,7 +13,7 @@ readonly class AttributeReader
 
     public function __construct()
     {
-        $this->reader = new SpiralAttributeReader();
+        $this->reader = new SpiralAttributeReader(new NamedArgumentsInstantiator());
     }
 
     /**

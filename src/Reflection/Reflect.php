@@ -40,7 +40,7 @@ final readonly class Reflect
         return $this->parseParameter($context, $context->getDeclaringClass());
     }
 
-    public function getReflector(array|object|string $subject): null|\ReflectionFunction|\ReflectionMethod
+    public function getReflector(array|object|string $subject): \ReflectionFunction|\ReflectionMethod|null
     {
         $reflector = null;
 
